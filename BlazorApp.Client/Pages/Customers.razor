@@ -1,0 +1,68 @@
+﻿@page "/customers"
+@rendermode InteractiveServer
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+@using BlazorApp.Client.Models
+@using MudBlazor
+
+<PageTitle>Customers</PageTitle>
+
+<MudText Typo="Typo.h4" Class="mb-4">
+    Customers Admin Panel
+</MudText>
+
+<MudPaper Class="pa-4">
+    <MudTable Items="customers" Hover="true" Dense="true">
+        <HeaderContent>
+            <MudTh>Company</MudTh>
+            <MudTh>Contact</MudTh>
+            <MudTh>City</MudTh>
+            <MudTh>Phone</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.CompanyName</MudTd>
+            <MudTd>@context.ContactName</MudTd>
+            <MudTd>@context.City</MudTd>
+            <MudTd>@context.Phone</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
+                    Edit
+                </MudButton>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Error"
+                           Size="Size.Small"
+                           OnClick="@(() => DeleteCustomer(context.Id))">
+                    Delete
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<Customer> customers = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await Http.GetFromJsonAsync<List<Customer>>("api/customers") ?? new();
+    }
+    
+    private async Task DeleteCustomer(string? id)
+    {
+        if (string.IsNullOrEmpty(id))
+            return;
+
+        var confirm = await JS.InvokeAsync<bool>("confirm", "Delete this customer?");
+
+        if (!confirm)
+            return;
+
+        await Http.DeleteAsync($"api/customers/{id}");
+
+        customers = await Http.GetFromJsonAsync<List<Customer>>("api/customers") ?? new();
+    }
+}
