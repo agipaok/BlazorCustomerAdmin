@@ -26,6 +26,11 @@ public class CustomerService
             .Limit(pageSize)
             .ToListAsync();
     }
+    
+    public async Task<long> GetTotalCountAsync()
+    {
+        return await _customers.CountDocumentsAsync(_ => true);
+    }
 
     public async Task CreateAsync(Customer customer)
     {
@@ -41,6 +46,8 @@ public class CustomerService
     {
         await _customers.DeleteOneAsync(x => x.Id == id);
     }
+    
+    
 
 }    
 

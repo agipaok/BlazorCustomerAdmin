@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject IDialogService DialogService
 
 @using BlazorApp.Client.Models
 @using MudBlazor
@@ -12,8 +13,18 @@
     Customers Admin Panel
 </MudText>
 
+<MudButton Variant="Variant.Filled"
+           Color="Color.Success"
+           Class="mb-4"
+           OnClick="OpenCreateDialog">
+    Add Customer
+</MudButton>
+
 <MudPaper Class="pa-4">
-    <MudTable Items="customers" Hover="true" Dense="true">
+    <MudTable @ref="table"
+              ServerData="LoadServerData"
+              Hover="true"
+              Dense="true">
         <HeaderContent>
             <MudTh>Company</MudTh>
             <MudTh>Contact</MudTh>
@@ -28,9 +39,9 @@
             <MudTd>@context.City</MudTd>
             <MudTd>@context.Phone</MudTd>
             <MudTd>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small">
-                    Edit
-                </MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                               Color="Color.Primary"
+                               OnClick="@(() => OpenEditDialog(context))" />
 
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Error"
@@ -40,29 +51,89 @@
                 </MudButton>
             </MudTd>
         </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
     </MudTable>
 </MudPaper>
 
 @code {
-    private List<Customer> customers = new();
+    private MudTable<Customer> table = default!;
 
-    protected override async Task OnInitializedAsync()
+    private async Task<TableData<Customer>> LoadServerData(TableState state, CancellationToken token)
     {
-        customers = await Http.GetFromJsonAsync<List<Customer>>("api/customers") ?? new();
+        var page = state.Page + 1;
+        var pageSize = state.PageSize;
+
+        var result = await Http.GetFromJsonAsync<PagedResult<Customer>>(
+            $"api/customers?page={page}&pageSize={pageSize}", token);
+
+        return new TableData<Customer>
+        {
+            Items = result?.Items ?? new(),
+            TotalItems = (int)(result?.TotalCount ?? 0)
+        };
     }
-    
+
     private async Task DeleteCustomer(string? id)
     {
         if (string.IsNullOrEmpty(id))
             return;
 
         var confirm = await JS.InvokeAsync<bool>("confirm", "Delete this customer?");
-
         if (!confirm)
             return;
 
         await Http.DeleteAsync($"api/customers/{id}");
+        await table.ReloadServerData();
+    }
 
-        customers = await Http.GetFromJsonAsync<List<Customer>>("api/customers") ?? new();
+    private async Task OpenEditDialog(Customer customer)
+    {
+        var parameters = new DialogParameters<CustomerEditDialog>
+        {
+            { x => x.Customer, new Customer
+                {
+                    Id = customer.Id,
+                    CompanyName = customer.CompanyName,
+                    ContactName = customer.ContactName,
+                    Address = customer.Address,
+                    City = customer.City,
+                    Region = customer.Region,
+                    PostalCode = customer.PostalCode,
+                    Country = customer.Country,
+                    Phone = customer.Phone
+                }
+            }
+        };
+
+        var dialog = await DialogService.ShowAsync<CustomerEditDialog>("Edit Customer", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var edited = (Customer)result.Data;
+            await Http.PutAsJsonAsync($"api/customers/{edited.Id}", edited);
+            await table.ReloadServerData();
+        }
+    }
+
+    private async Task OpenCreateDialog()
+    {
+        var parameters = new DialogParameters<CustomerEditDialog>
+        {
+            { x => x.Customer, new Customer() }
+        };
+
+        var dialog = await DialogService.ShowAsync<CustomerEditDialog>("New Customer", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var newCustomer = (Customer)result.Data;
+            await Http.PostAsJsonAsync("api/customers", newCustomer);
+            await table.ReloadServerData();
+        }
     }
 }

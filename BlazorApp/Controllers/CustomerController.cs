@@ -16,9 +16,12 @@ public class CustomersController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<List<Customer>> Get(int page = 1, int pageSize = 10)
+    public async Task<IActionResult> Get(int page = 1, int pageSize = 10)
     {
-        return await _customerService.GetPagedAsync(page, pageSize);
+        var items = await _customerService.GetPagedAsync(page, pageSize);
+        var totalCount = await _customerService.GetTotalCountAsync();
+
+        return Ok(new { items, totalCount });
     }
     
     [HttpPost]
