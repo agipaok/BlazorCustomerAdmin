@@ -43,12 +43,9 @@
                                Color="Color.Primary"
                                OnClick="@(() => OpenEditDialog(context))" />
 
-                <MudButton Variant="Variant.Filled"
-                           Color="Color.Error"
-                           Size="Size.Small"
-                           OnClick="@(() => DeleteCustomer(context.Id))">
-                    Delete
-                </MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               OnClick="@(() => DeleteCustomer(context.Id))" />
             </MudTd>
         </RowTemplate>
 

@@ -1,13 +1,12 @@
 ﻿@using MudBlazor
 
-<nav class="flex-column">
-    
-    <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All"
+                Icon="@Icons.Material.Filled.Home">
         Home
     </MudNavLink>
-
-    <MudNavLink Href="/customers" Icon="@Icons.Material.Filled.People">
+    <MudNavLink Href="/customers" Match="NavLinkMatch.Prefix"
+                Icon="@Icons.Material.Filled.People">
         Customers
     </MudNavLink>
-
-</nav>
+</MudNavMenu>
