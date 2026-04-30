@@ -108,9 +108,8 @@
         var dialog = await DialogService.ShowAsync<CustomerEditDialog>("Edit Customer", parameters);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result.Canceled && result.Data is Customer edited)
         {
-            var edited = (Customer)result.Data;
             await Http.PutAsJsonAsync($"api/customers/{edited.Id}", edited);
             await table.ReloadServerData();
         }
@@ -126,9 +125,8 @@
         var dialog = await DialogService.ShowAsync<CustomerEditDialog>("New Customer", parameters);
         var result = await dialog.Result;
 
-        if (!result.Canceled)
+        if (!result.Canceled && result.Data is Customer newCustomer)
         {
-            var newCustomer = (Customer)result.Data;
             await Http.PostAsJsonAsync("api/customers", newCustomer);
             await table.ReloadServerData();
         }
