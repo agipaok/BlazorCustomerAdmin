@@ -6,7 +6,7 @@
         <MudText Typo="Typo.h6">Edit Customer</MudText>
     </TitleContent>
     <DialogContent>
-        <EditForm Model="Customer" OnValidSubmit="Save">
+        <EditForm EditContext="editContext" OnValidSubmit="Save">
             <DataAnnotationsValidator/>
             <MudTextField @bind-Value="Customer.CompanyName" Label="Company Name" For="@(() => Customer.CompanyName)"/>
             <MudTextField @bind-Value="Customer.ContactName" Label="Contact Name" For="@(() => Customer.ContactName)"/>
