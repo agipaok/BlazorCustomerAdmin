@@ -6,14 +6,17 @@
         <MudText Typo="Typo.h6">Edit Customer</MudText>
     </TitleContent>
     <DialogContent>
-        <MudTextField @bind-Value="Customer.CompanyName" Label="Company Name" />
-        <MudTextField @bind-Value="Customer.ContactName" Label="Contact Name" />
-        <MudTextField @bind-Value="Customer.Address" Label="Address" />
-        <MudTextField @bind-Value="Customer.City" Label="City" />
-        <MudTextField @bind-Value="Customer.Region" Label="Region" />
-        <MudTextField @bind-Value="Customer.PostalCode" Label="Postal Code" />
-        <MudTextField @bind-Value="Customer.Country" Label="Country" />
-        <MudTextField @bind-Value="Customer.Phone" Label="Phone" />
+        <EditForm Model="Customer" OnValidSubmit="Save">
+            <DataAnnotationsValidator/>
+            <MudTextField @bind-Value="Customer.CompanyName" Label="Company Name" For="@(() => Customer.CompanyName)"/>
+            <MudTextField @bind-Value="Customer.ContactName" Label="Contact Name" For="@(() => Customer.ContactName)"/>
+            <MudTextField @bind-Value="Customer.Address" Label="Address" For="@(() => Customer.Address)"/>
+            <MudTextField @bind-Value="Customer.City" Label="City" For="@(() => Customer.City)"/>
+            <MudTextField @bind-Value="Customer.PostalCode" Label="Postal Code" For="@(() => Customer.PostalCode)"/>
+            <MudTextField @bind-Value="Customer.Region" Label="Region"/>
+            <MudTextField @bind-Value="Customer.Country" Label="Country" For="@(() => Customer.Country)"/>
+            <MudTextField @bind-Value="Customer.Phone" Label="Phone" For="@(() => Customer.Phone)"/>
+        </EditForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">Cancel</MudButton>
@@ -22,13 +25,24 @@
 </MudDialog>
 
 @code {
+    
     [CascadingParameter]
     private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter]
     public Customer Customer { get; set; } = new();
+    private EditContext editContext = default!;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(Customer);
+    }
 
     private void Cancel() => MudDialog.Cancel();
 
-    private void Save() => MudDialog.Close(DialogResult.Ok(Customer));
+    private void Save()
+    {
+        if (editContext.Validate())
+            MudDialog.Close(DialogResult.Ok(Customer));
+    }
 }
